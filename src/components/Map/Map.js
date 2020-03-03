@@ -24,7 +24,6 @@ class Map extends Component {
   render() {
     return (
       <div className="col-md-6 col-lg-6 map-wrapper">
-        <p>Map component</p>
         <div id="map" className="map"></div>
       </div>
     )
