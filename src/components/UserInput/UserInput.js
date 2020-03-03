@@ -10,7 +10,8 @@ const userInput = props => {
             <div>{name}</div>
             <button
               className="btn btn-danger"
-              title="Удалить точку">х</button>
+              title="Удалить точку"
+              onClick={() => props.removeHandler(id)}>х</button>
             </div>
         </li>
       )

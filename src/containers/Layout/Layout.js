@@ -29,6 +29,12 @@ class Layout extends Component {
     }
   }
 
+  removePointHandler = (removeId) => {
+    this.setState((state, props) => ({
+      points: [...state.points.filter(({ id }) => id !== removeId)]
+    }));
+  }
+
   render() {
     return (
       <div className="container row text-center col-md-12">
@@ -37,6 +43,7 @@ class Layout extends Component {
           onChange={this.inputHandler}
           keyPress={this.inputKeyPress}
           points={this.state.points}
+          removeHandler={this.removePointHandler}
           />
         <Map />
       </div>
