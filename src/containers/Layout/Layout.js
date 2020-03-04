@@ -7,10 +7,10 @@ class Layout extends Component {
     state = {
         inputValue: '',
         points: [
-            // { name: string; coords: number[], id: number }
-            { name: 'The first point', coords: [55.75, 37.63], id: 123 },
-            { name: 'The second point', coords: [55.77, 37.65], id: 124 },
-            { name: 'The third point', coords: [55.78, 37.66], id: 125 },
+            // // { name: string; coords: number[], id: number, mapPoint: GeoObject }
+            // { name: 'The first point', coords: [55.75, 37.63], id: 123, mapPoint: this.generateMapPoint([55.75, 37.63]) },
+            // { name: 'The second point', coords: [55.77, 37.65], id: 124, mapPoint: this.generateMapPoint([55.77, 37.65]) },
+            // { name: 'The third point', coords: [55.78, 37.66], id: 125, mapPoint: this.generateMapPoint([55.78, 37.66]) },
         ],
         map: null,
     };
@@ -30,6 +30,7 @@ class Layout extends Component {
                         name: state.inputValue,
                         coords: DEFAULT_COORDS,
                         id: Date.now(),
+                        mapPoint: this.generateMapPoint(DEFAULT_COORDS)
                     },
                 ],
                 inputValue: '',
@@ -38,6 +39,8 @@ class Layout extends Component {
     };
 
     removePointHandler = removeId => {
+        const removedPoint = this.state.points.filter(({ id }) => id === removeId)[0];
+        this.state.map.geoObjects.remove(removedPoint.mapPoint);
         this.setState((state, props) => ({
             points: [...state.points.filter(({ id }) => id !== removeId)],
         }));
@@ -75,12 +78,16 @@ class Layout extends Component {
         ymaps.ready(init);
     }
 
+    drawPointsOnMap() {
+      this.state.points.forEach(({ mapPoint }) => {
+          // const mapPoint = this.generateMapPoint(coords);
+          this.state.map.geoObjects.add(mapPoint);
+      });
+    }
+
     render() {
         if (this.state.points && this.state.map) {
-            this.state.points.forEach(({ coords }) => {
-                const mapPoint = this.generateMapPoint(coords);
-                this.state.map.geoObjects.add(mapPoint);
-            });
+          this.drawPointsOnMap();
         }
 
         return (
