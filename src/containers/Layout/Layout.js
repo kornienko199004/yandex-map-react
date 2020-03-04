@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import UserInput from '../../components/UserInput/UserInput';
-import Map from '../../components/Map/Map';
 
 const DEFAULT_COORDS = [55.76, 37.64];
 
@@ -71,13 +70,6 @@ class Layout extends Component {
             this.setState({
                 map: myMap,
             });
-            // console.log(this.state.points);
-            // if (this.state.points) {
-            //     this.state.points.forEach(({ coords }) => {
-            //         const mapPoint = this.generateMapPoint(coords);
-            //         myMap.geoObjects.add(mapPoint);
-            //     });
-            // }
         };
 
         ymaps.ready(init);
@@ -90,6 +82,7 @@ class Layout extends Component {
                 this.state.map.geoObjects.add(mapPoint);
             });
         }
+
         return (
             <div className="container row text-center col-md-12">
                 <UserInput
