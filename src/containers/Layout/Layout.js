@@ -12,6 +12,7 @@ class Layout extends Component {
             // { name: 'The second point', coords: [55.77, 37.65], id: 124, mapPoint: this.generateMapPoint([55.77, 37.65]) },
             // { name: 'The third point', coords: [55.78, 37.66], id: 125, mapPoint: this.generateMapPoint([55.78, 37.66]) },
         ],
+        allPointsCoords: [],
         map: null,
     };
 
@@ -23,16 +24,20 @@ class Layout extends Component {
 
     inputKeyPress = event => {
         if (event.key === 'Enter') {
+            const newPointId = Date.now();
+            const newPointCoords = DEFAULT_COORDS;
+        
             this.setState((state, props) => ({
                 points: [
                     ...state.points,
                     {
                         name: state.inputValue,
-                        coords: DEFAULT_COORDS,
-                        id: Date.now(),
-                        mapPoint: this.generateMapPoint(DEFAULT_COORDS),
+                        coords: newPointCoords,
+                        id: newPointId,
+                        mapPoint: this.generateMapPoint(newPointCoords, newPointId),
                     },
                 ],
+                allPointsCoords: [...state.allPointsCoords, newPointCoords],
                 inputValue: '',
             }));
         }
@@ -48,7 +53,7 @@ class Layout extends Component {
         }));
     };
 
-    generateMapPoint(coords) {
+    generateMapPoint(coords, pointId) {
         const { ymaps } = window;
         const mapPoint = new ymaps.GeoObject(
             {
@@ -61,10 +66,28 @@ class Layout extends Component {
                 draggable: true,
             }
         );
-        mapPoint.events.add('dragend', (e) => {
-          console.log(e.get('position'));
-          console.log(e);
-          console.log(e.originalEvent.target);
+        mapPoint.events.add('dragend', e => {
+            console.log(this.state.points);
+            const pointPosition = this.state.map.options
+                .get('projection')
+                .fromGlobalPixels(
+                    this.state.map.converter.pageToGlobal(e.get('position')),
+                    this.state.map.getZoom()
+                );
+
+            const updatedPoints = this.state.points.slice();
+            let index;
+            updatedPoints.forEach((point, i) => {
+                if (point.id === pointId) {
+                    index = i;
+                }
+            });
+            updatedPoints[index].coords = pointPosition;
+
+            this.setState({
+                points: updatedPoints
+            });
+
         });
 
         return mapPoint;
