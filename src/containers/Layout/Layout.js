@@ -14,6 +14,7 @@ class Layout extends Component {
         ],
         allPointsCoords: [],
         map: null,
+        polyline: null,
     };
 
     inputHandler = event => {
@@ -26,7 +27,9 @@ class Layout extends Component {
         if (event.key === 'Enter') {
             const newPointId = Date.now();
             const newPointCoords = DEFAULT_COORDS;
-        
+
+            this.removePolyline();
+
             this.setState((state, props) => ({
                 points: [
                     ...state.points,
@@ -34,11 +37,15 @@ class Layout extends Component {
                         name: state.inputValue,
                         coords: newPointCoords,
                         id: newPointId,
-                        mapPoint: this.generateMapPoint(newPointCoords, newPointId),
+                        mapPoint: this.generateMapPoint(
+                            newPointCoords,
+                            newPointId
+                        ),
                     },
                 ],
                 allPointsCoords: [...state.allPointsCoords, newPointCoords],
                 inputValue: '',
+                polyline: this.generatePolyline([...state.allPointsCoords, newPointCoords])
             }));
         }
     };
@@ -48,8 +55,21 @@ class Layout extends Component {
             ({ id }) => id === removeId
         )[0];
         this.state.map.geoObjects.remove(removedPoint.mapPoint);
+
+        const updatedPoints = [
+            ...this.state.points.filter(({ id }) => id !== removeId),
+        ];
+        const updatedAllPointsCoords = updatedPoints.map(
+            ({ coords }) => coords
+        );
+
+        this.removePolyline();
+        const polyline = this.generatePolyline(updatedAllPointsCoords);
+
         this.setState((state, props) => ({
-            points: [...state.points.filter(({ id }) => id !== removeId)],
+            points: updatedPoints,
+            allPointsCoords: updatedAllPointsCoords,
+            polyline
         }));
     };
 
@@ -67,7 +87,6 @@ class Layout extends Component {
             }
         );
         mapPoint.events.add('dragend', e => {
-            console.log(this.state.points);
             const pointPosition = this.state.map.options
                 .get('projection')
                 .fromGlobalPixels(
@@ -84,13 +103,31 @@ class Layout extends Component {
             });
             updatedPoints[index].coords = pointPosition;
 
-            this.setState({
-                points: updatedPoints
-            });
+            const updatedAllPointsCoords = updatedPoints.map(
+                ({ coords }) => coords
+            );
 
+            this.removePolyline();
+            const polyline = this.generatePolyline(updatedAllPointsCoords);
+
+            this.setState({
+                points: updatedPoints,
+                allPointsCoords: updatedAllPointsCoords,
+                polyline
+            });
         });
 
         return mapPoint;
+    }
+
+    generatePolyline(allPointsCoords) {
+        const { ymaps } = window;
+        return new ymaps.GeoObject({
+            geometry: {
+                type: 'LineString',
+                coordinates: [...allPointsCoords],
+            },
+        });
     }
 
     componentDidMount() {
@@ -122,9 +159,25 @@ class Layout extends Component {
         });
     }
 
+    drawPolylineOnMap() {
+        if (this.state.polyline) {
+            this.state.map.geoObjects.add(this.state.polyline);
+        }
+    }
+
+    removePolyline() {
+        if (this.state.polyline) {
+            this.state.map.geoObjects.remove(this.state.polyline);
+        }
+    }
+
     render() {
         if (this.state.points && this.state.map) {
             this.drawPointsOnMap();
+
+            if (this.state.allPointsCoords.length > 0) {
+                this.drawPolylineOnMap();
+            }
         }
 
         return (
